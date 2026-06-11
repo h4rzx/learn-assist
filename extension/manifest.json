@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Learn Assist",
+  "description": "Turn the current lesson into study notes, plain-English concepts, and a cheat sheet.",
+  "version": "0.1.0",
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.ucertify.com/*",
+    "https://*.ucertify.com/*",
+    "http://127.0.0.1:48734/*"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Learn Assist"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}

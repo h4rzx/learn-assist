@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "chunkTitle": {
+      "type": "string"
+    },
+    "mainIdeas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "simpleExplanation": {
+            "type": "string"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string"
+          },
+          "commonConfusion": {
+            "type": "string"
+          },
+          "reviewQuestion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "simpleExplanation",
+          "whyItMatters",
+          "example",
+          "commonConfusion",
+          "reviewQuestion"
+        ]
+      }
+    },
+    "likelyTestPoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "chunkTitle",
+    "mainIdeas",
+    "concepts",
+    "likelyTestPoints"
+  ]
+}

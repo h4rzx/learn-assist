@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Learn Assist</title>
+    <link rel="stylesheet" href="sidepanel.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>Learn Assist</h1>
+          <p id="pageTitle">No lesson captured</p>
+        </div>
+        <button id="settingsButton" class="icon-button" title="Settings">Settings</button>
+      </header>
+
+      <section id="settingsPanel" class="settings hidden">
+        <label>
+          Connector URL
+          <input id="connectorUrl" type="url" spellcheck="false">
+        </label>
+        <label>
+          Connector token
+          <input id="connectorToken" type="password" spellcheck="false">
+        </label>
+        <button id="saveSettingsButton">Save settings</button>
+      </section>
+
+      <section class="course-picker">
+        <label>
+          Course
+          <select id="courseSelect"></select>
+        </label>
+        <div class="course-create">
+          <input id="newCourseName" type="text" placeholder="New course name">
+          <button id="createCourseButton">Create</button>
+        </div>
+      </section>
+
+      <section class="controls">
+        <label class="checkbox">
+          <input id="includeScreenshot" type="checkbox">
+          <span>Include screenshot</span>
+        </label>
+        <label class="checkbox">
+          <input id="includeReferences" type="checkbox">
+          <span>Find references</span>
+        </label>
+        <button id="previewCaptureButton">Preview Capture</button>
+        <button id="analyzeButton" class="primary">Analyze lesson</button>
+        <button id="activityButton">Explain activity</button>
+        <button id="exportButton">Export Current Markdown</button>
+        <button id="deleteCurrentButton">Delete Current</button>
+      </section>
+
+      <div id="status" class="status">Start the connector, open a lesson, then analyze.</div>
+
+      <section id="progressPanel" class="progress-panel hidden">
+        <div class="book-header">
+          <h2>Generation</h2>
+          <span id="progressMeta">Running</span>
+        </div>
+        <ol id="progressLog" class="progress-log"></ol>
+      </section>
+
+      <section id="capturePreview" class="capture-preview hidden">
+        <div class="book-header">
+          <h2>Captured Text</h2>
+          <span id="captureMeta"></span>
+        </div>
+        <pre id="captureText"></pre>
+      </section>
+
+      <section class="book">
+        <div class="book-header">
+          <h2>Book</h2>
+          <span id="savedCount">0 saved</span>
+        </div>
+        <div class="book-actions">
+          <button id="exportAllMarkdownButton">Export All Markdown</button>
+          <button id="exportAllHtmlButton">Export All HTML</button>
+          <button id="clearBookButton">Clear Book</button>
+        </div>
+        <ol id="lessonList" class="lesson-list"></ol>
+      </section>
+
+      <section id="notes" class="notes empty">
+        <p>Generated study notes will appear here.</p>
+      </section>
+    </main>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "learn-assist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Brave/Chrome learning assistant side panel backed by local Codex CLI.",
+  "type": "module",
+  "scripts": {
+    "connector": "node connector/server.mjs",
+    "check": "node connector/server.mjs --check",
+    "test": "node tests/sidepanel-routing.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

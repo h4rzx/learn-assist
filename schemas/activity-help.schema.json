@@ -1,0 +1,96 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "activityTitle": {
+      "type": "string"
+    },
+    "whatThisTests": {
+      "type": "string"
+    },
+    "keyIdeas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "strongHints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "whereToFindAnswer": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "section": {
+            "type": "string"
+          },
+          "lookFor": {
+            "type": "string"
+          },
+          "whyRelevant": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "section",
+          "lookFor",
+          "whyRelevant"
+        ]
+      }
+    },
+    "solvingSteps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "selfCheckQuestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "suggestedAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "explanation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "answer",
+        "explanation"
+      ]
+    },
+    "avoidDoing": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "activityTitle",
+    "whatThisTests",
+    "keyIdeas",
+    "hints",
+    "strongHints",
+    "whereToFindAnswer",
+    "solvingSteps",
+    "selfCheckQuestions",
+    "suggestedAnswer",
+    "avoidDoing"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "lessonTitle": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "simpleExplanation": {
+            "type": "string"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "example": {
+            "type": "string"
+          },
+          "commonConfusion": {
+            "type": "string"
+          },
+          "reviewQuestion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "simpleExplanation",
+          "whyItMatters",
+          "example",
+          "commonConfusion",
+          "reviewQuestion"
+        ]
+      }
+    },
+    "likelyTestPoints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "whyUseful": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "whyUseful"
+        ]
+      }
+    },
+    "cheatSheet": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "lessonTitle",
+    "summary",
+    "concepts",
+    "likelyTestPoints",
+    "externalReferences",
+    "cheatSheet"
+  ]
+}
