@@ -13,7 +13,9 @@ const CONFIG_PATH = path.join(CONFIG_DIR, "connector.json");
 const SCHEMA_PATH = path.resolve("schemas/lesson-notes.schema.json");
 const CHUNK_SCHEMA_PATH = path.resolve("schemas/chunk-notes.schema.json");
 const ACTIVITY_SCHEMA_PATH = path.resolve("schemas/activity-help.schema.json");
+const BACKEND = (process.env.LEARN_ASSIST_BACKEND || "codex").toLowerCase();
 const CODEX_BIN = process.env.CODEX_BIN || "codex";
+const HERMES_BIN = process.env.HERMES_BIN || "hermes";
 const codexSessions = new Map();
 const MAX_BODY_BYTES = 15 * 1024 * 1024;
 const MAX_TEXT_CHARS = 120000;
@@ -42,6 +44,8 @@ const server = createServer(async (req, res) => {
       sendJson(res, 200, {
         ok: true,
         service: "learn-assist-connector",
+        backend: BACKEND,
+        hermesBin: HERMES_BIN,
         codexBin: CODEX_BIN
       });
       return;
@@ -120,6 +124,10 @@ server.listen(PORT, HOST, () => {
 });
 
 async function check() {
+  if (!["codex", "hermes"].includes(BACKEND)) {
+    throw new Error("LEARN_ASSIST_BACKEND must be 'codex' or 'hermes'");
+  }
+
   if (!existsSync(SCHEMA_PATH)) {
     throw new Error(`Missing schema at ${SCHEMA_PATH}`);
   }
@@ -130,8 +138,9 @@ async function check() {
     throw new Error(`Missing schema at ${ACTIVITY_SCHEMA_PATH}`);
   }
 
+  const bin = BACKEND === "hermes" ? HERMES_BIN : CODEX_BIN;
   await new Promise((resolve, reject) => {
-    const child = spawn(CODEX_BIN, ["--version"], { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(bin, ["--version"], { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";
     child.stdout.on("data", (chunk) => {
       output += chunk.toString();
@@ -145,7 +154,7 @@ async function check() {
         console.log(output.trim());
         resolve();
       } else {
-        reject(new Error(output.trim() || `codex exited with ${code}`));
+        reject(new Error(output.trim() || `${bin} exited with ${code}`));
       }
     });
   });
@@ -283,6 +292,18 @@ async function explainActivity(payload, emit = () => {}) {
     });
     args.push(prompt);
 
+    if (BACKEND === "hermes") {
+      emit("hermes-start", { message: "Starting Hermes activity helper." });
+      const stdout = await runHermes({ prompt, context, schemaPath: ACTIVITY_SCHEMA_PATH, includeReferences: false, screenshotPath }, emit);
+      emit("hermes-done", { message: "Hermes activity helper complete." });
+
+      return {
+        activity: parseCodexJson(stdout),
+        raw: stdout,
+        mode: "activity"
+      };
+    }
+
     emit("codex-start", { message: "Starting Codex activity helper." });
     const stdout = await runCodex(args, `${JSON.stringify(context, null, 2)}\n`, emit, "activity");
     emit("codex-done", { message: "Codex activity helper complete." });
@@ -300,6 +321,16 @@ async function explainActivity(payload, emit = () => {}) {
 async function analyzeLessonSingle(page, text, includeReferences, screenshotPath, emit = () => {}) {
   const context = lessonContext(page, text);
   const prompt = finalPrompt(includeReferences);
+  if (BACKEND === "hermes") {
+    emit("hermes-start", { message: "Starting Hermes lesson analysis." });
+    const stdout = await runHermes({ prompt, context, schemaPath: SCHEMA_PATH, includeReferences, screenshotPath }, emit);
+    emit("hermes-done", { message: "Hermes lesson analysis complete." });
+    return {
+      mode: "single",
+      notes: parseCodexJson(stdout),
+      raw: stdout
+    };
+  }
   const args = codexArgs({ schemaPath: SCHEMA_PATH, includeReferences, screenshotPath, sessionKey: "lesson" });
   args.push(prompt);
   emit("codex-start", { message: "Starting Codex lesson analysis." });
@@ -346,7 +377,9 @@ async function analyzeLessonChunked(page, text, includeReferences, emit = () => 
 
     const args = codexArgs({ schemaPath: CHUNK_SCHEMA_PATH, includeReferences: false, sessionKey: "lesson-chunk" });
     args.push(prompt);
-    const stdout = await runCodex(args, `${JSON.stringify(context, null, 2)}\n`, emit, "lesson-chunk");
+    const stdout = BACKEND === "hermes"
+      ? await runHermes({ prompt, context, schemaPath: CHUNK_SCHEMA_PATH, includeReferences: false }, emit)
+      : await runCodex(args, `${JSON.stringify(context, null, 2)}\n`, emit, "lesson-chunk");
     rawChunks.push(stdout);
     chunkNotes.push(parseCodexJson(stdout));
     emit("chunk-done", {
@@ -379,7 +412,9 @@ async function analyzeLessonChunked(page, text, includeReferences, emit = () => 
   const mergeArgs = codexArgs({ schemaPath: SCHEMA_PATH, includeReferences, sessionKey: "lesson-merge" });
   mergeArgs.push(mergePrompt);
   emit("merge-start", { message: "Merging chunk notes into final study guide." });
-  const mergedStdout = await runCodex(mergeArgs, `${JSON.stringify(mergeContext, null, 2)}\n`, emit, "lesson-merge");
+  const mergedStdout = BACKEND === "hermes"
+    ? await runHermes({ prompt: mergePrompt, context: mergeContext, schemaPath: SCHEMA_PATH, includeReferences }, emit)
+    : await runCodex(mergeArgs, `${JSON.stringify(mergeContext, null, 2)}\n`, emit, "lesson-merge");
   emit("merge-done", { message: "Merged final study guide." });
 
   return {
@@ -561,6 +596,56 @@ function runCodex(args, stdin, emit = () => {}, sessionKey = "") {
 
     child.stdin.write(stdin);
     child.stdin.end();
+  });
+}
+
+async function runHermes({ prompt, context, schemaPath, includeReferences, screenshotPath }, emit = () => {}) {
+  const schema = JSON.parse(await readFile(schemaPath, "utf8"));
+  const fullPrompt = [
+    prompt,
+    "Return only valid JSON. Do not wrap it in Markdown fences.",
+    "The JSON must conform to this schema:",
+    JSON.stringify(schema),
+    "Input context:",
+    JSON.stringify(context, null, 2)
+  ].join("\n\n");
+
+  const args = screenshotPath
+    ? ["chat", "--query", fullPrompt, "--image", screenshotPath, "--quiet", "--source", "learn-assist"]
+    : ["--oneshot", fullPrompt, "--ignore-rules"];
+
+  if (includeReferences) {
+    args.push("--toolsets", "web");
+  }
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(HERMES_BIN, args, {
+      cwd: process.cwd(),
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on("error", reject);
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        emit("hermes-log", { message: "Hermes returned a response." });
+        resolve(stdout.trim());
+        return;
+      }
+
+      reject(new Error(stderr.trim() || stdout.trim() || `hermes exited with ${code}`));
+    });
   });
 }
 

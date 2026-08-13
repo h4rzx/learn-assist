@@ -2,13 +2,13 @@
 
 Learn Assist is a local-first Brave/Chrome extension that helps turn the lesson you are currently reading into study notes, plain-English explanations, review questions, and a Markdown cheat sheet.
 
-The first implementation uses your local `codex` CLI through a small local connector, so you do not need to put an OpenAI API key inside the extension.
+The connector can use either your local `codex` CLI or `hermes` CLI, so you do not need to put an API key inside the extension.
 
 ## Requirements
 
 - Brave or Chrome
 - Node.js 18+
-- Codex CLI installed and logged in
+- Codex CLI installed and logged in, or Hermes Agent installed and configured
 
 Check Codex:
 
@@ -17,12 +17,31 @@ codex --version
 codex login
 ```
 
+Check Hermes:
+
+```bash
+hermes --version
+hermes doctor
+```
+
 ## Run The Local Connector
 
 From this project:
 
 ```bash
 npm run connector
+```
+
+To run it through Hermes Agent instead of Codex:
+
+```bash
+LEARN_ASSIST_BACKEND=hermes npm run connector
+```
+
+On this Mac, `/usr/local/bin/node` is too old for the test runner. If needed, prefer Homebrew Node:
+
+```bash
+PATH=/opt/homebrew/bin:$PATH LEARN_ASSIST_BACKEND=hermes npm run connector
 ```
 
 The connector prints a local URL and token. Keep it running while using the extension.
